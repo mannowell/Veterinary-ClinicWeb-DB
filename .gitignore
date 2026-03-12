@@ -1,0 +1,18 @@
+# Arquivos a ignorar no repositório
+*.env
+.DS_Store
+Thumbs.db
+
+# Dumps de banco de dados locais
+*.dump
+*.backup
+*.bak
+
+# Logs do PostgreSQL
+*.log
+
+# Configs pessoais de IDE
+.idea/
+.vscode/settings.json
+*.suo
+*.user
