@@ -1,18 +1,7 @@
-# Arquivos a ignorar no repositório
-*.env
+node_modules/
 .DS_Store
-Thumbs.db
-
-# Dumps de banco de dados locais
-*.dump
-*.backup
-*.bak
-
-# Logs do PostgreSQL
-*.log
-
-# Configs pessoais de IDE
-.idea/
-.vscode/settings.json
-*.suo
-*.user
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.gemini/

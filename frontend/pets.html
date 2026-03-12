@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetAdmin - Pets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="index.html" class="logo">VetAdmin</a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">Dashboard</a></li>
+            <li><a href="agendamentos.html" class="nav-link">Agendamentos</a></li>
+            <li><a href="pets.html" class="nav-link active">Pets</a></li>
+            <li><a href="clientes.html" class="nav-link">Clientes</a></li>
+            <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"></li>
+            <li><a href="medicos.html" class="nav-link">Médicos</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-actions">
+            <h1>Gestão de Pets</h1>
+            <button class="btn-primary" id="btn-novo-pet">+ Novo Pet</button>
+        </div>
+
+        <div class="glass-panel">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Espécie/Raça</th>
+                            <th>Tutor</th>
+                            <th>Nascimento</th>
+                            <th>Sexo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pets-table-body">
+                        <tr><td colspan="7" class="loading">Carregando pets...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Novo/Editar Pet -->
+    <div class="modal-overlay" id="pet-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-pet-modal">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="pet-modal-title">Novo Pet</h2>
+            </div>
+            <form id="pet-form">
+                <input type="hidden" id="pet-id">
+                <div class="form-group">
+                    <label>Nome do Pet</label>
+                    <input type="text" id="pet-nome" class="form-input" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Espécie</label>
+                        <select id="pet-especie" class="form-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Raça</label>
+                        <select id="pet-raca" class="form-input"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tutor (Cliente)</label>
+                    <select id="pet-tutor" class="form-input" required></select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Idade (Anos)</label>
+                        <input type="number" id="pet-idade" class="form-input" min="0" placeholder="ex: 3">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Nascimento</label>
+                        <input type="date" id="pet-nascimento" class="form-input">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Peso (kg)</label>
+                        <input type="number" step="0.01" id="pet-peso" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor / Pelagem</label>
+                        <input type="text" id="pet-cor" class="form-input">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Sexo</label>
+                        <select id="pet-sexo" class="form-input" required>
+                            <option value="M">Macho</option>
+                            <option value="F">Fêmea</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Microchip</label>
+                        <input type="text" id="pet-microchip" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group" id="group-ativo" style="display: none;">
+                    <label>Status</label>
+                    <select id="pet-ativo" class="form-input">
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Salvar Pet</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tableBody = document.getElementById('pets-table-body');
+            const petModal = document.getElementById('pet-modal');
+            const petForm = document.getElementById('pet-form');
+            const btnNovoPet = document.getElementById('btn-novo-pet');
+            
+            const loadPets = async () => {
+                try {
+                    const response = await fetch('http://localhost:3000/api/pets');
+                    const pets = await response.json();
+                    
+                    tableBody.innerHTML = pets.map(pet => `
+                        <tr>
+                            <td><strong>${pet.nome}</strong></td>
+                            <td>${pet.especie_nome} <span style="color: var(--text-secondary); font-size: 0.8rem;">(${pet.raca_nome || 'Sem Raça'})</span></td>
+                            <td>${pet.tutor_nome}</td>
+                            <td>${pet.data_nascimento ? new Date(pet.data_nascimento).toLocaleDateString('pt-BR') : '--'}</td>
+                            <td>${pet.sexo === 'M' ? 'Macho' : 'Fêmea'}</td>
+                            <td><span class="status-badge ${pet.ativo ? 'status-concluido' : 'status-cancelado'}">${pet.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                            <td>
+                                <button class="action-icon btn-edit-pet" data-id="${pet.id}" data-nome="${pet.nome}" data-peso="${pet.peso_kg}" data-ativo="${pet.ativo}">✎</button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    document.querySelectorAll('.btn-edit-pet').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const d = e.target.dataset;
+                            document.getElementById('pet-modal-title').textContent = 'Editar Pet';
+                            document.getElementById('pet-id').value = d.id;
+                            document.getElementById('pet-nome').value = d.nome;
+                            document.getElementById('pet-peso').value = d.peso;
+                            document.getElementById('pet-ativo').value = d.ativo;
+                            document.getElementById('group-ativo').style.display = 'block';
+                            // Simplificação: no edit, escondemos os campos que não mudam no schema simplificado
+                            petModal.classList.add('active');
+                        });
+                    });
+                } catch (error) {
+                    console.error('Erro:', error);
+                }
+            };
+
+            // Prefetch options for modal
+            const prefetch = async () => {
+                try {
+                    const [cliRes, espRes] = await Promise.all([
+                        fetch('http://localhost:3000/api/clientes'),
+                        fetch('http://localhost:3000/api/especies'),
+                    ]);
+                    const clientes = await cliRes.json();
+                    const especies = await espRes.json();
+                    
+                    document.getElementById('pet-tutor').innerHTML = clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+                    document.getElementById('pet-especie').innerHTML = '<option value="">Selecione...</option>' + especies.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+                } catch (err) { console.error('Erro no prefetch:', err); }
+            };
+
+            // Dynamic Races
+            document.getElementById('pet-especie').addEventListener('change', async (e) => {
+                const espId = e.target.value;
+                const racaSelect = document.getElementById('pet-raca');
+                if (!espId) {
+                    racaSelect.innerHTML = '<option value="">Aguardando espécie...</option>';
+                    return;
+                }
+                const res = await fetch(`http://localhost:3000/api/racas?especie_id=${espId}`);
+                const racas = await res.json();
+                racaSelect.innerHTML = racas.map(r => `<option value="${r.id}">${r.nome}</option>`).join('');
+            });
+
+            // Age <-> Birthdate Logic
+            const ageInput = document.getElementById('pet-idade');
+            const birthInput = document.getElementById('pet-nascimento');
+
+            ageInput.addEventListener('input', () => {
+                const years = parseInt(ageInput.value);
+                if (!isNaN(years)) {
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() - years);
+                    // Standardize to first of the year if just age given, or stay as is
+                    birthInput.value = d.toISOString().split('T')[0];
+                }
+            });
+
+            birthInput.addEventListener('change', () => {
+                if (birthInput.value) {
+                    const birth = new Date(birthInput.value);
+                    const now = new Date();
+                    let age = now.getFullYear() - birth.getFullYear();
+                    const m = now.getMonth() - birth.getMonth();
+                    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+                    ageInput.value = age;
+                }
+            });
+
+            btnNovoPet.addEventListener('click', () => {
+                petForm.reset();
+                ageInput.value = '';
+                document.getElementById('pet-id').value = '';
+                document.getElementById('pet-modal-title').textContent = 'Novo Pet';
+                document.getElementById('group-ativo').style.display = 'none';
+                document.getElementById('pet-raca').innerHTML = '<option value="">Aguardando espécie...</option>';
+                petModal.classList.add('active');
+                prefetch();
+            });
+
+            document.getElementById('close-pet-modal').addEventListener('click', () => petModal.classList.remove('active'));
+
+            petForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('pet-id').value;
+                const data = {
+                    nome: document.getElementById('pet-nome').value,
+                    peso_kg: parseFloat(document.getElementById('pet-peso').value),
+                    cor_pelagem: document.getElementById('pet-cor').value,
+                    microchip: document.getElementById('pet-microchip').value,
+                    data_nascimento: document.getElementById('pet-nascimento').value,
+                    ativo: document.getElementById('pet-ativo').value === 'true'
+                };
+
+                if (!id) {
+                    data.cliente_id = parseInt(document.getElementById('pet-tutor').value);
+                    data.especie_id = parseInt(document.getElementById('pet-especie').value);
+                    data.raca_id = parseInt(document.getElementById('pet-raca').value);
+                    data.sexo = document.getElementById('pet-sexo').value;
+                }
+
+                const url = id ? `http://localhost:3000/api/pets/${id}` : 'http://localhost:3000/api/pets';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Erro ao salvar');
+                    }
+
+                    petModal.classList.remove('active');
+                    loadPets();
+                } catch (error) {
+                    alert('Falha ao salvar: ' + error.message);
+                }
+            });
+
+            loadPets();
+        });
+    </script>
+</body>
+</html>

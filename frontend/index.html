@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetAdmin - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="index.html" class="logo">VetAdmin</a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">Dashboard</a></li>
+            <li><a href="agendamentos.html" class="nav-link">Agendamentos</a></li>
+            <li><a href="pets.html" class="nav-link">Pets</a></li>
+            <li><a href="clientes.html" class="nav-link">Clientes</a></li>
+            <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"></li>
+            <li><a href="medicos.html" class="nav-link">Médicos</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <h1>Dashboard</h1>
+
+        <div class="stats-grid">
+            <a href="pets.html" class="stat-card" style="text-decoration: none; display: block; cursor: pointer;">
+                <span class="stat-label">Total de Pets</span>
+                <div class="stat-value" id="stat-pets">0</div>
+            </a>
+            <a href="clientes.html" class="stat-card" style="text-decoration: none; display: block; cursor: pointer;">
+                <span class="stat-label">Clientes Ativos</span>
+                <div class="stat-value" id="stat-clientes">0</div>
+            </a>
+            <a href="agendamentos.html?filter=hoje" class="stat-card" style="text-decoration: none; display: block; cursor: pointer;">
+                <span class="stat-label">Consultas hoje</span>
+                <div class="stat-value" id="stat-hoje">0</div>
+            </a>
+            <a href="agendamentos.html?filter=agendado" class="stat-card" style="text-decoration: none; display: block; cursor: pointer;">
+                <span class="stat-label">Próximos Agendamentos</span>
+                <div class="stat-value" id="stat-agendados">0</div>
+            </a>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="glass-panel">
+                <h3>Faturamento Mensal</h3>
+                <canvas id="revenueChart" style="margin-top: 1.5rem;"></canvas>
+            </div>
+            <div class="glass-panel">
+                <h3>Ações Rápidas</h3>
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="agendamentos.html" class="filter-btn" style="text-align: center; text-decoration: none;">Novo Agendamento</a>
+                    <a href="pets.html" class="filter-btn" style="text-align: center; text-decoration: none;">Cadastrar Pet</a>
+                    <a href="clientes.html" class="filter-btn" style="text-align: center; text-decoration: none;">Novo Cliente</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fetch Stats
+            try {
+                const response = await fetch('http://localhost:3000/api/stats');
+                const stats = await response.json();
+                document.getElementById('stat-pets').textContent = stats.total_pets;
+                document.getElementById('stat-clientes').textContent = stats.total_clientes;
+                document.getElementById('stat-hoje').textContent = stats.consultas_hoje;
+                document.getElementById('stat-agendados').textContent = stats.total_agendados;
+            } catch (err) {
+                console.error('Erro ao buscar stats:', err);
+            }
+
+            // Fetch Chart Data
+            try {
+                const response = await fetch('http://localhost:3000/api/faturamento');
+                const data = await response.json();
+                
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(row => row.mes_ano),
+                        datasets: [{
+                            label: 'Receita Líquida (R$)',
+                            data: data.map(row => row.receita_liquida),
+                            borderColor: '#58a6ff',
+                            backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e' } },
+                            x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Erro ao buscar faturamento:', err);
+            }
+        });
+    </script>
+</body>
+</html>

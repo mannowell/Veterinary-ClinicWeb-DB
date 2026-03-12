@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetAdmin - Clientes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="index.html" class="logo">VetAdmin</a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">Dashboard</a></li>
+            <li><a href="agendamentos.html" class="nav-link">Agendamentos</a></li>
+            <li><a href="pets.html" class="nav-link">Pets</a></li>
+            <li><a href="clientes.html" class="nav-link active">Clientes</a></li>
+            <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"></li>
+            <li><a href="medicos.html" class="nav-link">Médicos</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-actions">
+            <h1>Gestão de Clientes</h1>
+            <button class="btn-primary" id="btn-novo-cliente">+ Novo Cliente</button>
+        </div>
+
+        <div class="glass-panel">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Cidade/UF</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientes-table-body">
+                        <tr><td colspan="7" class="loading">Carregando clientes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Novo/Editar Cliente -->
+    <div class="modal-overlay" id="cliente-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-cliente-modal">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="cliente-modal-title">Novo Cliente</h2>
+            </div>
+            <form id="cliente-form">
+                <input type="hidden" id="cliente-id">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="cliente-nome" class="form-input" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>CPF</label>
+                        <input type="text" id="cliente-cpf" class="form-input" maxlength="14" placeholder="000.000.000-00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" id="cliente-telefone" class="form-input" placeholder="(00) 00000-0000" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="cliente-email" class="form-input" placeholder="email@exemplo.com" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                     <div class="form-group">
+                        <label>CEP</label>
+                        <input type="text" id="cliente-cep" class="form-input" maxlength="9" placeholder="00000-000">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Cidade</label>
+                        <input type="text" id="cliente-cidade" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Estado (UF)</label>
+                    <input type="text" id="cliente-estado" class="form-input" maxlength="2" placeholder="UF">
+                </div>
+                <div class="form-group" id="cli-group-ativo" style="display: none;">
+                    <label>Status</label>
+                    <select id="cliente-ativo" class="form-input">
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">Salvar Cliente</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tableBody = document.getElementById('clientes-table-body');
+            const clienteModal = document.getElementById('cliente-modal');
+            const clienteForm = document.getElementById('cliente-form');
+            const btnNovoCliente = document.getElementById('btn-novo-cliente');
+            
+            const loadClientes = async () => {
+                try {
+                    const response = await fetch('http://localhost:3000/api/clientes');
+                    const clientes = await response.json();
+                    
+                    tableBody.innerHTML = clientes.map(c => `
+                        <tr>
+                            <td><strong>${c.nome}</strong></td>
+                            <td>${c.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")}</td>
+                            <td style="font-size: 0.9rem;">${c.email}</td>
+                            <td>${c.telefone}</td>
+                            <td>${c.cidade || '--'}/${c.estado || '--'}</td>
+                            <td><span class="status-badge ${c.ativo ? 'status-concluido' : 'status-cancelado'}">${c.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                            <td>
+                                <button class="action-icon btn-edit-cli" 
+                                    data-id="${c.id}" 
+                                    data-nome="${c.nome}" 
+                                    data-email="${c.email}" 
+                                    data-tel="${c.telefone}" 
+                                    data-cidade="${c.cidade || ''}" 
+                                    data-estado="${c.estado || ''}" 
+                                    data-ativo="${c.ativo}">✎</button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    document.querySelectorAll('.btn-edit-cli').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const d = e.target.dataset;
+                            document.getElementById('cliente-modal-title').textContent = 'Editar Cliente';
+                            document.getElementById('cliente-id').value = d.id;
+                            document.getElementById('cliente-nome').value = d.nome;
+                            document.getElementById('cliente-email').value = d.email;
+                            document.getElementById('cliente-telefone').value = d.tel;
+                            document.getElementById('cliente-cidade').value = d.cidade;
+                            document.getElementById('cliente-estado').value = d.estado;
+                            document.getElementById('cliente-ativo').value = d.ativo;
+                            document.getElementById('cliente-cpf').disabled = true;
+                            document.getElementById('cli-group-ativo').style.display = 'block';
+                            clienteModal.classList.add('active');
+                        });
+                    });
+                } catch (error) {
+                    console.error('Erro:', error);
+                }
+            };
+
+            btnNovoCliente.addEventListener('click', () => {
+                clienteForm.reset();
+                document.getElementById('cliente-id').value = '';
+                document.getElementById('cliente-modal-title').textContent = 'Novo Cliente';
+                document.getElementById('cliente-cpf').disabled = false;
+                document.getElementById('cli-group-ativo').style.display = 'none';
+                clienteModal.classList.add('active');
+            });
+
+            document.getElementById('close-cliente-modal').addEventListener('click', () => clienteModal.classList.remove('active'));
+
+            clienteForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('cliente-id').value;
+                const data = {
+                    nome: document.getElementById('cliente-nome').value,
+                    email: document.getElementById('cliente-email').value,
+                    telefone: document.getElementById('cliente-telefone').value,
+                    cidade: document.getElementById('cliente-cidade').value,
+                    estado: document.getElementById('cliente-estado').value.toUpperCase().trim(),
+                    ativo: document.getElementById('cliente-ativo').value === 'true'
+                };
+
+                if (!id) {
+                    data.cpf = document.getElementById('cliente-cpf').value.replace(/\D/g, '');
+                }
+
+                const url = id ? `http://localhost:3000/api/clientes/${id}` : 'http://localhost:3000/api/clientes';
+                const method = id ? 'PUT' : 'POST';
+
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Erro ao salvar');
+                    }
+
+                    clienteModal.classList.remove('active');
+                    loadClientes();
+                } catch (error) {
+                    alert('Falha ao salvar: ' + error.message);
+                }
+            });
+
+            // Máscara de CPF
+            document.getElementById('cliente-cpf').addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 11) v = v.substring(0, 11);
+                v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                v = v.replace(/(\d{3})(\d)/, '$1.$2');
+                v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+                e.target.value = v;
+            });
+
+            // Busca de CEP (ViaCEP)
+            document.getElementById('cliente-cep').addEventListener('blur', async (e) => {
+                const cep = e.target.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    try {
+                        const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                        const data = await res.json();
+                        if (!data.erro) {
+                            document.getElementById('cliente-cidade').value = data.localidade;
+                            document.getElementById('cliente-estado').value = data.uf;
+                        }
+                    } catch (err) { console.error('Erro ao buscar CEP'); }
+                }
+            });
+
+            loadClientes();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clínica Vet - Médicos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <a href="index.html" class="logo">VetAdmin</a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link">Dashboard</a></li>
+            <li><a href="agendamentos.html" class="nav-link">Agendamentos</a></li>
+            <li><a href="pets.html" class="nav-link">Pets</a></li>
+            <li><a href="clientes.html" class="nav-link">Clientes</a></li>
+            <li style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;"></li>
+            <li><a href="medicos.html" class="nav-link active">Médicos</a></li>
+            <li><a href="servicos.html" class="nav-link">Serviços</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="header-actions">
+            <h1>Gestão de Médicos</h1>
+            <button class="btn-primary" id="btn-novo-medico">+ Novo Médico</button>
+        </div>
+
+        <div class="glass-panel">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Especialidade</th>
+                            <th>CRMV</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicos-table-body">
+                        <tr><td colspan="6" class="loading">Carregando médicos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Médico -->
+    <div class="modal-overlay" id="medico-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-medico-modal">&times;</button>
+            <div class="modal-header">
+                <h2 class="modal-title" id="medico-modal-title">Novo Médico</h2>
+            </div>
+            <form id="medico-form">
+                <input type="hidden" id="medico-id">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="med-nome" class="form-input" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Especialidade</label>
+                        <select id="med-especialidade" class="form-input" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>CRMV</label>
+                        <input type="text" id="med-crmv" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="med-email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Telefone</label>
+                    <input type="text" id="med-tel" class="form-input">
+                </div>
+                <div class="form-group" id="med-group-ativo" style="display: none;">
+                    <label>Status</label>
+                    <select id="med-ativo" class="form-input">
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Salvar Médico</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('medicos-table-body');
+            const modal = document.getElementById('medico-modal');
+            const form = document.getElementById('medico-form');
+
+            const loadMedicos = async () => {
+                const res = await fetch('http://localhost:3000/api/medicos');
+                const data = await res.json();
+                tableBody.innerHTML = data.map(m => `
+                    <tr>
+                        <td><strong>${m.nome}</strong></td>
+                        <td>${m.especialidade_nome}</td>
+                        <td>${m.crmv}</td>
+                        <td>${m.email || '-'}</td>
+                        <td><span class="status-badge status-${m.ativo ? 'agendado' : 'cancelado'}">${m.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                        <td><button class="action-icon" onclick="editMedico(${m.id})">✎</button></td>
+                    </tr>
+                `).join('');
+            };
+
+            const prefetchSpec = async () => {
+                const res = await fetch('http://localhost:3000/api/especialidades');
+                const data = await res.json();
+                document.getElementById('med-especialidade').innerHTML = data.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+            };
+
+            document.getElementById('btn-novo-medico').onclick = () => {
+                form.reset();
+                document.getElementById('medico-id').value = '';
+                document.getElementById('med-group-ativo').style.display = 'none';
+                modal.classList.add('active');
+                prefetchSpec();
+            };
+
+            document.getElementById('close-medico-modal').onclick = () => modal.classList.remove('active');
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('medico-id').value;
+                const payload = {
+                    nome: document.getElementById('med-nome').value,
+                    especialidade_id: parseInt(document.getElementById('med-especialidade').value),
+                    crmv: document.getElementById('med-crmv').value,
+                    email: document.getElementById('med-email').value,
+                    telefone: document.getElementById('med-tel').value,
+                    ativo: document.getElementById('med-ativo').value === 'true'
+                };
+                await fetch(id ? `http://localhost:3000/api/medicos/${id}` : 'http://localhost:3000/api/medicos', {
+                    method: id ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                modal.classList.remove('active');
+                loadMedicos();
+            };
+
+            window.editMedico = async (id) => {
+                const res = await fetch('http://localhost:3000/api/medicos');
+                const data = await res.json();
+                const m = data.find(x => x.id == id);
+                document.getElementById('medico-id').value = m.id;
+                document.getElementById('med-nome').value = m.nome;
+                document.getElementById('med-crmv').value = m.crmv;
+                document.getElementById('med-email').value = m.email;
+                document.getElementById('med-tel').value = m.telefone;
+                document.getElementById('med-ativo').value = m.ativo.toString();
+                document.getElementById('med-group-ativo').style.display = 'block';
+                await prefetchSpec();
+                document.getElementById('med-especialidade').value = m.especialidade_id;
+                modal.classList.add('active');
+            };
+
+            loadMedicos();
+        });
+    </script>
+</body>
+</html>
