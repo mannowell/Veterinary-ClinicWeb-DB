@@ -1,6 +1,6 @@
 # VetAdmin - Sistema de Gestão Veterinária 🐾
 
-Sistema completo para gestão de clínicas veterinárias, focado em alta performance, normalização de dados (3NF) e uma experiência de usuário premium com design **Dark Mode Glassmorphism**.
+Sistema para gestão de clínicas veterinárias, focado em alta performance, normalização de dados (3NF) e uma experiência de usuário premium com design **Dark Mode Glassmorphism**.
 
 ![Dashboard Preview](https://via.placeholder.com/800x450/0d1117/58a6ff?text=VetAdmin+Glassmorphism+Interface)
 
