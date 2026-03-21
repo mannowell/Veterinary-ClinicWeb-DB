@@ -2,7 +2,7 @@
 
 Sistema para gestão de clínicas veterinárias, focado em alta performance, normalização de dados (3NF) e uma experiência de usuário premium com design **Dark Mode Glassmorphism**.
 
-![Dashboard Preview](https://via.placeholder.com/800x450/0d1117/58a6ff?text=VetAdmin+Glassmorphism+Interface)
+> **Painel Administrativo para controle total de prontuários, faturamento e saúde animal.**
 
 ## 🚀 Funcionalidades Principais
 
@@ -33,22 +33,28 @@ Sistema para gestão de clínicas veterinárias, focado em alta performance, nor
 
 ## ⚙️ Instalação e Configuração
 
+Para rodar o projeto localmente, você precisará inicializar o Backend e o Banco de Dados antes de abrir o Frontend.
+
 ### 1. Banco de Dados (PostgreSQL)
 Certifique-se de ter o PostgreSQL instalado. Execute o script de criação no seu terminal ou ferramenta de gerenciamento (pgAdmin/DBeaver):
 ```bash
 psql -U postgres -f backend/schema.sql
 ```
 
-### 2. Backend (Node.js)
-Navegue até a pasta backend e instale as dependências:
+### 2. Backend (Node.js API)
+Navegue até a pasta backend, instale as dependências e inicie o servidor:
 ```bash
 cd backend
 npm install
 node server.js
 ```
+*O servidor deve iniciar na porta de desenvolvimento configurada.*
 
-### 3. Frontend
-O frontend é composto por arquivos estáticos. Basta abrir o `frontend/index.html` no seu navegador ou utilizar uma extensão como *Live Server*.
+### 3. Frontend (Client UI)
+O frontend não requer servidor Node. Você deve abrir o arquivo estático diretamente ou usar um servidor simples:
+- Abra o `frontend/index.html` no seu navegador 
+- OU utilize a extensão *Live Server* do VSCode.
+*(Certifique-se de que o backend já esteja rodando para que as chamadas de API do frontend funcionem corretamente).*
 
 ---
 
