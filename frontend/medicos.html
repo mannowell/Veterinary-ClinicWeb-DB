@@ -92,13 +92,15 @@
     </div>
 
     <script>
+        const API_BASE = window.API_BASE || 'http://localhost:3000';
+
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.getElementById('medicos-table-body');
             const modal = document.getElementById('medico-modal');
             const form = document.getElementById('medico-form');
 
             const loadMedicos = async () => {
-                const res = await fetch('http://localhost:3000/api/medicos');
+                const res = await fetch(API_BASE + '/api/medicos');
                 const data = await res.json();
                 tableBody.innerHTML = data.map(m => `
                     <tr>
@@ -113,7 +115,7 @@
             };
 
             const prefetchSpec = async () => {
-                const res = await fetch('http://localhost:3000/api/especialidades');
+                const res = await fetch(API_BASE + '/api/especialidades');
                 const data = await res.json();
                 document.getElementById('med-especialidade').innerHTML = data.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
             };
@@ -139,7 +141,7 @@
                     telefone: document.getElementById('med-tel').value,
                     ativo: document.getElementById('med-ativo').value === 'true'
                 };
-                await fetch(id ? `http://localhost:3000/api/medicos/${id}` : 'http://localhost:3000/api/medicos', {
+                await fetch(id ? API_BASE + '/api/medicos/' + id : API_BASE + '/api/medicos', {
                     method: id ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -149,7 +151,7 @@
             };
 
             window.editMedico = async (id) => {
-                const res = await fetch('http://localhost:3000/api/medicos');
+                const res = await fetch(API_BASE + '/api/medicos');
                 const data = await res.json();
                 const m = data.find(x => x.id == id);
                 document.getElementById('medico-id').value = m.id;

@@ -87,13 +87,15 @@
     </div>
 
     <script>
+        const API_BASE = window.API_BASE || 'http://localhost:3000';
+
         document.addEventListener('DOMContentLoaded', () => {
             const tableBody = document.getElementById('servicos-table-body');
             const modal = document.getElementById('servico-modal');
             const form = document.getElementById('servico-form');
 
             const loadServicos = async () => {
-                const res = await fetch('http://localhost:3000/api/servicos');
+                const res = await fetch(API_BASE + '/api/servicos');
                 const data = await res.json();
                 tableBody.innerHTML = data.map(s => `
                     <tr>
@@ -125,7 +127,7 @@
                     duracao_min: parseInt(document.getElementById('serv-duracao').value),
                     ativo: document.getElementById('serv-ativo').value === 'true'
                 };
-                await fetch(id ? `http://localhost:3000/api/servicos/${id}` : 'http://localhost:3000/api/servicos', {
+                await fetch(id ? API_BASE + '/api/servicos/' + id : API_BASE + '/api/servicos', {
                     method: id ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
@@ -135,7 +137,7 @@
             };
 
             window.editServico = async (id) => {
-                const res = await fetch('http://localhost:3000/api/servicos');
+                const res = await fetch(API_BASE + '/api/servicos');
                 const data = await res.json();
                 const s = data.find(x => x.id == id);
                 document.getElementById('serv-id').value = s.id;

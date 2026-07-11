@@ -4,16 +4,18 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5500';
+app.use(cors({ origin: FRONTEND_ORIGIN }));
 app.use(express.json());
 
-// Configuração do Banco
+// Configuração do Banco via variáveis de ambiente
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'veterinaria',
-    password: 'manno1234',
-    port: 5432,
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME || 'veterinaria',
+    password: process.env.DB_PASSWORD || 'postgres',
+    port: parseInt(process.env.DB_PORT || '5432', 10),
 });
 
 // Endpoint para o Gráfico de Faturamento (Consumindo sua View)
@@ -316,8 +318,10 @@ app.put('/api/consultas/:id', async (req, res) => {
 // --- MÓDULO CLÍNICO (PRONTUÁRIOS, RECEITAS, VACINAS) ---
 
 app.get('/api/consultas/:id/prontuario', async (req, res) => {
-    const result = await pool.query('SELECT * FROM clinica.prontuarios WHERE consulta_id = $1', [req.params.id]);
-    res.json(result.rows[0]);
+    try {
+        const result = await pool.query('SELECT * FROM clinica.prontuarios WHERE consulta_id = $1', [req.params.id]);
+        res.json(result.rows[0] || null);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/consultas/:id/prontuario', async (req, res) => {
@@ -333,8 +337,10 @@ app.post('/api/consultas/:id/prontuario', async (req, res) => {
 });
 
 app.get('/api/prontuarios/:id/receitas', async (req, res) => {
-    const result = await pool.query('SELECT * FROM clinica.receitas WHERE prontuario_id = $1', [req.params.id]);
-    res.json(result.rows);
+    try {
+        const result = await pool.query('SELECT * FROM clinica.receitas WHERE prontuario_id = $1', [req.params.id]);
+        res.json(result.rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/prontuarios/:id/receitas', async (req, res) => {
@@ -376,4 +382,5 @@ app.post('/api/pets/:id/vacinas', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.listen(3000, () => console.log('API rodando na porta 3000'));
+const PORT = parseInt(process.env.PORT || '3000', 10);
+app.listen(PORT, () => console.log(`API rodando na porta ${PORT}`));

@@ -1,3 +1,5 @@
+const API_BASE = window.API_BASE || 'http://localhost:3000';
+
 document.addEventListener('DOMContentLoaded', () => {
     const tableBody = document.getElementById('table-body');
     const filterBtns = document.querySelectorAll('.filter-btn');
@@ -24,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '<tr><td colspan="7" class="loading">Carregando consultas...</td></tr>';
         try {
             const url = currentStatusFilter 
-                ? `http://localhost:3000/api/consultas?status=${currentStatusFilter}`
-                : 'http://localhost:3000/api/consultas';
+                ? `${API_BASE}/api/consultas?status=${currentStatusFilter}`
+                : `${API_BASE}/api/consultas`;
             const response = await fetch(url);
             consultasData = await response.json();
             renderTable(consultasData);
@@ -73,9 +75,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const prefetchOptions = async () => {
         try {
             const [petsRes, medRes, servRes] = await Promise.all([
-                fetch('http://localhost:3000/api/pets'),
-                fetch('http://localhost:3000/api/medicos'), 
-                fetch('http://localhost:3000/api/servicos')
+                fetch(`${API_BASE}/api/pets`),
+                fetch(`${API_BASE}/api/medicos`), 
+                fetch(`${API_BASE}/api/servicos`)
             ]);
             const pets = await petsRes.json();
             const medicos = await medRes.json();
@@ -160,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const id = document.getElementById('consulta-id').value;
         const method = id ? 'PUT' : 'POST';
-        const url = id ? `http://localhost:3000/api/consultas/${id}` : 'http://localhost:3000/api/consultas';
+        const url = id ? `${API_BASE}/api/consultas/${id}` : `${API_BASE}/api/consultas`;
 
         const isEdit = id !== '';
         const desc = parseFloat(isEdit ? document.getElementById('cons-desconto').value : document.getElementById('cons-desconto-novo').value) || 0;
@@ -229,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderReceitasList();
 
         try {
-            const res = await fetch(`http://localhost:3000/api/consultas/${id}/prontuario`);
+            const res = await fetch(`${API_BASE}/api/consultas/${id}/prontuario`);
             if (res.ok) {
                 const data = await res.json();
                 if (data) {
@@ -280,14 +282,14 @@ document.addEventListener('DOMContentLoaded', () => {
             temperatura_celsius: parseFloat(document.getElementById('pron-temp').value)
         };
         try {
-            const res = await fetch(`http://localhost:3000/api/consultas/${activeConsultaId}/prontuario`, {
+            const res = await fetch(`${API_BASE}/api/consultas/${activeConsultaId}/prontuario`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const pront = await res.json();
             for (const rec of tempReceitas) {
-                await fetch(`http://localhost:3000/api/prontuarios/${pront.id}/receitas`, {
+                await fetch(`${API_BASE}/api/prontuarios/${pront.id}/receitas`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(rec)

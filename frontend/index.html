@@ -64,10 +64,11 @@
     </main>
 
     <script>
+        const API_BASE = window.API_BASE || 'http://localhost:3000';
+
         document.addEventListener('DOMContentLoaded', async () => {
-            // Fetch Stats
             try {
-                const response = await fetch('http://localhost:3000/api/stats');
+                const response = await fetch(`${API_BASE}/api/stats`);
                 const stats = await response.json();
                 document.getElementById('stat-pets').textContent = stats.total_pets;
                 document.getElementById('stat-clientes').textContent = stats.total_clientes;
@@ -77,9 +78,8 @@
                 console.error('Erro ao buscar stats:', err);
             }
 
-            // Fetch Chart Data
             try {
-                const response = await fetch('http://localhost:3000/api/faturamento');
+                const response = await fetch(`${API_BASE}/api/faturamento`);
                 const data = await response.json();
                 
                 const ctx = document.getElementById('revenueChart').getContext('2d');

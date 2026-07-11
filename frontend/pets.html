@@ -125,6 +125,8 @@
     </div>
 
     <script>
+        const API_BASE = window.API_BASE || 'http://localhost:3000';
+
         document.addEventListener('DOMContentLoaded', async () => {
             const tableBody = document.getElementById('pets-table-body');
             const petModal = document.getElementById('pet-modal');
@@ -133,7 +135,7 @@
             
             const loadPets = async () => {
                 try {
-                    const response = await fetch('http://localhost:3000/api/pets');
+                    const response = await fetch(API_BASE + '/api/pets');
                     const pets = await response.json();
                     
                     tableBody.innerHTML = pets.map(pet => `
@@ -172,8 +174,8 @@
             const prefetch = async () => {
                 try {
                     const [cliRes, espRes] = await Promise.all([
-                        fetch('http://localhost:3000/api/clientes'),
-                        fetch('http://localhost:3000/api/especies'),
+                        fetch(API_BASE + '/api/clientes'),
+                        fetch(API_BASE + '/api/especies'),
                     ]);
                     const clientes = await cliRes.json();
                     const especies = await espRes.json();
@@ -191,7 +193,7 @@
                     racaSelect.innerHTML = '<option value="">Aguardando espécie...</option>';
                     return;
                 }
-                const res = await fetch(`http://localhost:3000/api/racas?especie_id=${espId}`);
+                const res = await fetch(API_BASE + '/api/racas?especie_id=' + espId);
                 const racas = await res.json();
                 racaSelect.innerHTML = racas.map(r => `<option value="${r.id}">${r.nome}</option>`).join('');
             });
@@ -253,7 +255,7 @@
                     data.sexo = document.getElementById('pet-sexo').value;
                 }
 
-                const url = id ? `http://localhost:3000/api/pets/${id}` : 'http://localhost:3000/api/pets';
+                const url = id ? API_BASE + '/api/pets/' + id : API_BASE + '/api/pets';
                 const method = id ? 'PUT' : 'POST';
 
                 try {

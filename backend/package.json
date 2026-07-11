@@ -1,14 +1,16 @@
 {
-  "name": "backend",
+  "name": "vetadmin-backend",
   "version": "1.0.0",
-  "description": "> **Portfolio Project · PostgreSQL 15+ · Data Engineering**",
-  "main": "index.js",
+  "description": "VetAdmin - Veterinary Clinic Management API",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Wellison Oliveira (Mannowell)",
+  "license": "MIT",
   "type": "commonjs",
   "dependencies": {
     "cors": "^2.8.6",

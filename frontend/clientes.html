@@ -106,6 +106,8 @@
     </div>
 
     <script>
+        const API_BASE = window.API_BASE || `${API_BASE}`;
+
         document.addEventListener('DOMContentLoaded', async () => {
             const tableBody = document.getElementById('clientes-table-body');
             const clienteModal = document.getElementById('cliente-modal');
@@ -114,7 +116,7 @@
             
             const loadClientes = async () => {
                 try {
-                    const response = await fetch('http://localhost:3000/api/clientes');
+                    const response = await fetch(`${API_BASE}/api/clientes`);
                     const clientes = await response.json();
                     
                     tableBody.innerHTML = clientes.map(c => `
@@ -186,7 +188,7 @@
                     data.cpf = document.getElementById('cliente-cpf').value.replace(/\D/g, '');
                 }
 
-                const url = id ? `http://localhost:3000/api/clientes/${id}` : 'http://localhost:3000/api/clientes';
+                const url = id ? API_BASE + '/api/clientes/' + id : API_BASE + '/api/clientes';
                 const method = id ? 'PUT' : 'POST';
 
                 try {
